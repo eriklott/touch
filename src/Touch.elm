@@ -93,7 +93,26 @@ changedTouch idx =
 -}
 touchList : Decode.Decoder a -> Decode.Decoder (List a)
 touchList decoder =
-    Decode.map2 (,) (Decode.maybe identifier) decoder
-        |> Decode.dict
-        |> Decode.map Dict.values
-        |> Decode.map (List.filterMap (\( k, v ) -> Maybe.map (\_ -> v) k))
+    let
+        touchNodeDecoder val =
+            case val of
+                Just _ ->
+                    Decode.map Just decoder
+
+                Nothing ->
+                    Decode.succeed Nothing
+    in
+        Decode.maybe identifier
+            |> Decode.andThen touchNodeDecoder
+            |> Decode.dict
+            |> Decode.map Dict.values
+            |> Decode.map (List.filterMap (\v -> v))
+
+
+
+--
+--
+-- Decode.map2 (,) (Decode.maybe identifier) decoder
+--     |> Decode.dict
+--     |> Decode.map Dict.values
+--     |> Decode.map (List.filterMap (\( k, v ) -> Maybe.map (\_ -> v) k))

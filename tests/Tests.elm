@@ -23,9 +23,24 @@ all =
                 \() ->
                     Expect.equal (Ok "mytarget") (Decode.decodeString (Touch.target Decode.string) "{\"target\":\"mytarget\"}")
             ]
-        , describe "touchList"
+        , describe "Touch.touchList"
             [ test "returns dict" <|
                 \() ->
                     Expect.equal (Ok [ 100 ]) (Decode.decodeString (Touch.touchList <| Decode.field "pageX" Decode.int) "{\"0\":{\"identifier\":0,\"pageX\":100}}")
+            , test "ignores non-touch nodes" <|
+                \() ->
+                    Expect.equal (Ok [ 100 ]) (Decode.decodeString (Touch.touchList <| Decode.field "pageX" Decode.int) "{\"length\":1,\"0\":{\"identifier\":0,\"pageX\":100,\"pageY\":100}}")
+            , test "reports unknown property" <|
+                \() ->
+                    let
+                        result =
+                            (Decode.decodeString (Touch.touchList <| Decode.field "badProperty" Decode.int) "{\"length\":1,\"0\":{\"identifier\":0,\"pageX\":100,\"pageY\":100}}")
+                    in
+                        case result of
+                            Ok _ ->
+                                Expect.fail "expected unknown property to return error result"
+
+                            Err _ ->
+                                Expect.pass
             ]
         ]
