@@ -26,6 +26,6 @@ all =
         , describe "touchList"
             [ test "returns dict" <|
                 \() ->
-                    Expect.equal (Ok [ 100 ]) (Decode.decodeString (Touch.touchList <| Decode.field "pageX" Decode.int) "{\"0\":{\"identifier\":0\",\"pageX\":100}}")
+                    Expect.equal (Ok [ 100 ]) (Decode.decodeString (Touch.touchList <| Decode.field "pageX" Decode.int) "{\"0\":{\"identifier\":0,\"pageX\":100}}")
             ]
         ]
