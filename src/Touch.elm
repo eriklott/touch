@@ -2,13 +2,33 @@ module Touch exposing (..)
 
 {-| A useful set of utilities for decoding browser touch events
 
+# Types
+@docs Position
+
 # Decoders
-@docs target, identifier, touches, touch, targetTouches, targetTouch,
+@docs position, target, identifier, touches, touch, targetTouches, targetTouch,
     changedTouches, changedTouch, touchList
 -}
 
 import Json.Decode as Decode
 import Dict exposing (Dict)
+
+
+{-| position represents an on-screen position
+-}
+type alias Position =
+    { x : Int
+    , y : Int
+    }
+
+
+{-| The decoder used to extract a `Position` from a JavaScript touch event.
+-}
+position : Decode.Decoder Position
+position =
+    Decode.map2 Position
+        (Decode.field "pageX" Decode.int)
+        (Decode.field "pageY" Decode.int)
 
 
 {-| get the target of the touch event
