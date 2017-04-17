@@ -4,10 +4,13 @@
     "repository": "https://github.com/eriklott/touch.git",
     "license": "BSD3",
     "source-directories": [
-        "src",
+        "src"
     ],
-    "exposed-modules": ["Touch"],
+    "exposed-modules": [
+        "Touch"
+    ],
     "dependencies": {
+        "elm-community/elm-test": "3.1.0 <= v < 4.0.0",
         "elm-lang/core": "5.1.1 <= v < 6.0.0",
         "elm-lang/html": "2.0.0 <= v < 3.0.0"
     },
