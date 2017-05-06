@@ -13,12 +13,12 @@ import Json.Decode as Decode
 all : Test
 all =
     describe "Touch Test"
-        [ describe "identifier"
+        [ describe "Touch.identifier"
             [ test "return int" <|
                 \() ->
                     Expect.equal (Ok 2) (Decode.decodeString Touch.identifier "{\"identifier\":2}")
             ]
-        , describe "target"
+        , describe "Touch.target"
             [ test "return targetNode" <|
                 \() ->
                     Expect.equal (Ok "mytarget") (Decode.decodeString (Touch.target Decode.string) "{\"target\":\"mytarget\"}")
@@ -42,5 +42,10 @@ all =
 
                             Err _ ->
                                 Expect.pass
+            ]
+        , describe "Touch.changedTouches"
+            [ test "returns page positions" <|
+                \() ->
+                    Expect.equal (Ok [ Touch.Position 100 200 ]) (Decode.decodeString (Touch.changedTouches <| Touch.position) " {\"changedTouches\":{\"length\":1,\"0\":{\"identifier\":0,\"pageX\":100,\"pageY\":200}}}")
             ]
         ]

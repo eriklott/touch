@@ -10,8 +10,7 @@ module Touch exposing (..)
     changedTouches, changedTouch, touchList
 -}
 
-import Json.Decode as Decode
-import Dict exposing (Dict)
+import Json.Decode as Json
 
 
 {-| position represents an on-screen position
@@ -24,95 +23,89 @@ type alias Position =
 
 {-| The decoder used to extract a `Position` from a JavaScript touch event.
 -}
-position : Decode.Decoder Position
+position : Json.Decoder Position
 position =
-    Decode.map2 Position
-        (Decode.field "pageX" Decode.int)
-        (Decode.field "pageY" Decode.int)
+    Json.map2 Position
+        (Json.field "pageX" Json.int)
+        (Json.field "pageY" Json.int)
 
 
 {-| get the target of the touch event
 -}
-target : Decode.Decoder a -> Decode.Decoder a
+target : Json.Decoder a -> Json.Decoder a
 target =
-    Decode.field "target"
+    Json.field "target"
 
 
 {-| get the touch identifier
 -}
-identifier : Decode.Decoder Int
+identifier : Json.Decoder Int
 identifier =
-    Decode.field "identifier" Decode.int
+    Json.field "identifier" Json.int
 
 
 {-| A list of Touches for every point of contact currently touching the surface.
 -}
-touches : Decode.Decoder a -> Decode.Decoder (List a)
+touches : Json.Decoder a -> Json.Decoder (List a)
 touches =
-    Decode.field "touches" << touchList
+    Json.field "touches" << touchList
 
 
 {-| Get point of contact currently touching the surface by its identifier
 -}
-touch : Int -> Decode.Decoder a -> Decode.Decoder a
+touch : Int -> Json.Decoder a -> Json.Decoder a
 touch idx =
-    Decode.at [ "touches", toString idx ]
+    Json.at [ "touches", toString idx ]
 
 
 {-| A list of Touches for every point of contact that is touching the surface
 and started on the element that is the target of the current event
 -}
-targetTouches : Decode.Decoder a -> Decode.Decoder (List a)
+targetTouches : Json.Decoder a -> Json.Decoder (List a)
 targetTouches =
-    Decode.field "touches" << touchList
+    Json.field "touches" << touchList
 
 
 {-| Get point of contact that is touching the surface and started on the
 element that is the target of the current event by its identifier.
 -}
-targetTouch : Int -> Decode.Decoder a -> Decode.Decoder a
+targetTouch : Int -> Json.Decoder a -> Json.Decoder a
 targetTouch idx =
-    Decode.at [ "targetTouches", toString idx ]
+    Json.at [ "targetTouches", toString idx ]
 
 
 {-| A list of Touches for every point of contact which contributed to the event.
 -}
-changedTouches : Decode.Decoder a -> Decode.Decoder (List a)
+changedTouches : Json.Decoder a -> Json.Decoder (List a)
 changedTouches =
-    Decode.field "changedTouches" << touchList
+    Json.field "changedTouches" << touchList
 
 
 {-| Get point of contact which contributed to the event by its identifier.
 -}
-changedTouch : Int -> Decode.Decoder a -> Decode.Decoder a
+changedTouch : Int -> Json.Decoder a -> Json.Decoder a
 changedTouch idx =
-    Decode.at [ "changedTouches", toString idx ]
+    Json.at [ "changedTouches", toString idx ]
 
 
 {-| A list of Touches.
 -}
-touchList : Decode.Decoder a -> Decode.Decoder (List a)
+touchList : Json.Decoder a -> Json.Decoder (List a)
 touchList decoder =
     let
-        touchNodeDecoder val =
-            case val of
-                Just _ ->
-                    Decode.map Just decoder
+        toTouchKeysLoop num count accum =
+            if count < num then
+                toTouchKeysLoop num (count + 1) (accum ++ [ toString count ])
+            else
+                accum
 
-                Nothing ->
-                    Decode.succeed Nothing
+        toTouchKeys num =
+            toTouchKeysLoop num 0 []
+
+        decodeTouchValues =
+            List.map (\key -> Json.field key decoder)
+                >> List.foldr (Json.map2 (\a accum -> a :: accum)) (Json.succeed [])
     in
-        Decode.maybe identifier
-            |> Decode.andThen touchNodeDecoder
-            |> Decode.dict
-            |> Decode.map Dict.values
-            |> Decode.map (List.filterMap (\v -> v))
-
-
-
---
---
--- Decode.map2 (,) (Decode.maybe identifier) decoder
---     |> Decode.dict
---     |> Decode.map Dict.values
---     |> Decode.map (List.filterMap (\( k, v ) -> Maybe.map (\_ -> v) k))
+        Json.field "length" Json.int
+            |> Json.map toTouchKeys
+            |> Json.andThen decodeTouchValues
