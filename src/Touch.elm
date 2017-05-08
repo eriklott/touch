@@ -11,6 +11,7 @@ module Touch exposing (..)
 -}
 
 import Json.Decode as Json
+import Dict
 
 
 {-| position represents an on-screen position
@@ -53,9 +54,11 @@ touches =
 
 {-| Get point of contact currently touching the surface by its identifier
 -}
-touch : Int -> Json.Decoder a -> Json.Decoder a
-touch idx =
-    Json.at [ "touches", toString idx ]
+touch : Int -> Json.Decoder a -> Json.Decoder (Maybe a)
+touch ident decoder =
+    touches (Json.map2 (,) identifier decoder)
+        |> Json.map Dict.fromList
+        |> Json.map (Dict.get ident)
 
 
 {-| A list of Touches for every point of contact that is touching the surface
@@ -69,9 +72,11 @@ targetTouches =
 {-| Get point of contact that is touching the surface and started on the
 element that is the target of the current event by its identifier.
 -}
-targetTouch : Int -> Json.Decoder a -> Json.Decoder a
-targetTouch idx =
-    Json.at [ "targetTouches", toString idx ]
+targetTouch : Int -> Json.Decoder a -> Json.Decoder (Maybe a)
+targetTouch ident decoder =
+    targetTouches (Json.map2 (,) identifier decoder)
+        |> Json.map Dict.fromList
+        |> Json.map (Dict.get ident)
 
 
 {-| A list of Touches for every point of contact which contributed to the event.
@@ -83,9 +88,11 @@ changedTouches =
 
 {-| Get point of contact which contributed to the event by its identifier.
 -}
-changedTouch : Int -> Json.Decoder a -> Json.Decoder a
-changedTouch idx =
-    Json.at [ "changedTouches", toString idx ]
+changedTouch : Int -> Json.Decoder a -> Json.Decoder (Maybe a)
+changedTouch ident decoder =
+    changedTouches (Json.map2 (,) identifier decoder)
+        |> Json.map Dict.fromList
+        |> Json.map (Dict.get ident)
 
 
 {-| A list of Touches.
